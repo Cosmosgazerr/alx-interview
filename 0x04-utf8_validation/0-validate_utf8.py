@@ -1,35 +1,32 @@
 #!/usr/bin/python3
-'''determines if a given data set represents a valid utf-8 encoding'''
+"""UTF-8 Validation"""
+
+
+def get_leading_set_bits(num):
+    """returns the number of leading set bits (1)"""
+    set_bits = 0
+    helper = 1 << 7
+    while helper & num:
+        set_bits += 1
+        helper = helper >> 1
+    return set_bits
 
 
 def validUTF8(data):
-    # number of bytes
-    numberOfBytes = 0
-
-    # looping through dataset
-    for num in data:
-        # get binary representation
-        # get least significant 8-bits
-        binaryRepresentation = format(num, '#010b')[-8:]
-
-        # if no bytes then process new utf-8 character
-        if numberOfBytes == 0:
-            # get number of 1s at beginning of string
-            for bit in binaryRepresentation:
-                if bit == '0':
-                    break
-                numberOfBytes += 1
-
-            if numberOfBytes == 0:
+    """determines if a given data set represents a valid UTF-8 encoding"""
+    bits_count = 0
+    for i in range(len(data)):
+        if bits_count == 0:
+            bits_count = get_leading_set_bits(data[i])
+            '''1-byte (format: 0xxxxxxx)'''
+            if bits_count == 0:
                 continue
-
-            if numberOfBytes == 1 or numberOfBytes > 4:
+            '''a character in UTF-8 can be 1 to 4 bytes long'''
+            if bits_count == 1 or bits_count > 4:
                 return False
-
         else:
-            if not (binaryRepresentation[0] == '1' and binaryRepresentation[1] == '0'):
+            '''checks if current byte has format 10xxxxxx'''
+            if not (data[i] & (1 << 7) and not (data[i] & (1 << 6))):
                 return False
-
-        numberOfBytes -= 1
-
-    return numberOfBytes == 0
+        bits_count -= 1
+    return bits_count == 0
